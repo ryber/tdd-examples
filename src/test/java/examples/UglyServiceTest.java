@@ -1,7 +1,6 @@
 package examples;
 
 import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +16,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,12 +24,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UglyServiceTest {
 
+    MockClient mockClient = new MockClient();
     @Mock
     private HttpClient httpClient;
     @Mock
     private Logger logger;
     @Mock
-    private BeanRepo repo;
+    private MockBeanRepo repo;
     @Mock
     private Gson jsonParser;
     @Mock
@@ -73,4 +73,30 @@ class UglyServiceTest {
         assertEquals("http://localhost:4567", request.uri().toString());
         verify(repo).saveBeans(beans);
     }
+
+    @Test
+    void whatIfWeUseHandRulledMocks() throws Exception {
+        var beans = List.of(new CoolBean("Fran"), new CoolBean("Tim"));
+        repo.toReturn = beans;
+
+        mockClient.setExpectedResponse("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
+
+        assertEquals("http://localhost:4567", mockClient.lastRequest().uri().toString());
+        assertEquals(beans, repo.saved);
+    }
+
+    private static class MockBeanRepo extends BeanRepo {
+        public List<CoolBean> toReturn;
+        public List<CoolBean> saved;
+        @Override
+        public List<CoolBean> getAllBeans() {
+            return toReturn;
+        }
+
+        @Override
+        public void saveBeans(List<CoolBean> processed) {
+            saved = processed;
+        }
+    }
+
 }
