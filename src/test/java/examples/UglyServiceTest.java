@@ -18,8 +18,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UglyServiceTest {
@@ -83,6 +82,29 @@ class UglyServiceTest {
 
         assertEquals("http://localhost:4567", mockClient.lastRequest().uri().toString());
         assertEquals(beans, repo.saved);
+    }
+
+    public static class BeanRepoExpectations {
+        private BeanRepo beanRepo = mock(BeanRepo.class);
+        private ArgumentCaptor<List<CoolBean>> args = ArgumentCaptor.forClass(List.class);
+
+
+        public BeanRepo getMock(){
+            return beanRepo;
+        }
+
+        public void expectAllBeans(List<CoolBean> beans){
+            when(beanRepo.getAllBeans()).thenReturn(beans);
+        }
+
+        public void expectSavedBeans() {
+            doNothing().when(beanRepo).saveBeans(args.capture());
+        }
+
+        public List<CoolBean> getSaved() {
+            return args.getValue();
+        }
+
     }
 
     private static class MockBeanRepo extends BeanRepo {
