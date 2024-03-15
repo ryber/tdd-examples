@@ -58,4 +58,19 @@ class UglyServiceTest {
         assertEquals("http://localhost:4567", request.uri().toString());
         verify(repo).saveBeans(beans);
     }
+
+    @Test
+    void whatIfGsonWasJustReal() throws Exception {
+        var beans = List.of(new CoolBean("Fran"), new CoolBean("Tim"));
+        when(repo.getAllBeans()).thenReturn(beans);
+        when(httpClient.send(requestArgumentCaptor.capture(), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenReturn(response);
+        when(response.body()).thenReturn("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
+
+        uglyService.sendBeans();
+
+        var request = requestArgumentCaptor.getValue();
+        assertEquals("http://localhost:4567", request.uri().toString());
+        verify(repo).saveBeans(beans);
+    }
 }
