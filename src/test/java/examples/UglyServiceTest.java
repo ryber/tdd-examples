@@ -79,8 +79,9 @@ class UglyServiceTest {
     void whatIfWeUseHandRulledMocks() throws Exception {
         var beans = List.of(new CoolBean("Fran"), new CoolBean("Tim"));
         repo.toReturn = beans;
-
         mockClient.setExpectedResponse("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
+
+        uglyService.sendBeans();
 
         assertEquals("http://localhost:4567", mockClient.lastRequest().uri().toString());
         assertEquals(beans, repo.saved);
@@ -90,13 +91,14 @@ class UglyServiceTest {
     void usingCustomSetUpAndAsserts() throws Exception {
         var beans = givenExpectedBeans("Fran", "Tim");
 
-        mockClient.setExpectedResponse("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
+        uglyService.sendBeans();
 
         assertSavedBeans(beans);
     }
 
     private List<CoolBean> givenExpectedBeans(String... beanNames) {
         var beans = Stream.of(beanNames).map(CoolBean::new).collect(Collectors.toList());
+        mockClient.setExpectedResponse("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
         repo.toReturn = beans;
         return beans;
     }
