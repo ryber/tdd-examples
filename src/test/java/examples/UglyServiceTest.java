@@ -15,6 +15,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -80,6 +82,26 @@ class UglyServiceTest {
 
         mockClient.setExpectedResponse("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
 
+        assertEquals("http://localhost:4567", mockClient.lastRequest().uri().toString());
+        assertEquals(beans, repo.saved);
+    }
+
+    @Test
+    void usingCustomSetUpAndAsserts() throws Exception {
+        var beans = givenExpectedBeans("Fran", "Tim");
+
+        mockClient.setExpectedResponse("[{\"name\": \"Fran\"}, {\"name\": \"Tim\"}]");
+
+        assertSavedBeans(beans);
+    }
+
+    private List<CoolBean> givenExpectedBeans(String... beanNames) {
+        var beans = Stream.of(beanNames).map(CoolBean::new).collect(Collectors.toList());
+        repo.toReturn = beans;
+        return beans;
+    }
+
+    private void assertSavedBeans(List<CoolBean> beans) {
         assertEquals("http://localhost:4567", mockClient.lastRequest().uri().toString());
         assertEquals(beans, repo.saved);
     }
